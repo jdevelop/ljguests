@@ -20,6 +20,8 @@ object FetchStats {
 
 trait FetchStats {
 
+  this: FeedParser with DateReader =>
+
   import FetchStats.PAGES
 
   private var counter: CountDownLatch = _
@@ -41,6 +43,7 @@ trait FetchStats {
     override def receive = {
       case Fetch(url) =>
         val response = client.execute(new HttpGet(url))
+        parse(response.getEntity.getContent, url)
     }
 
   }

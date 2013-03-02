@@ -13,6 +13,8 @@ import org.jsoup.nodes.Element
  */
 trait FeedParser {
 
+  this: DateReader =>
+
   def parse(is: InputStream, url: String) = {
     val doc = Jsoup.parse(is, "UTF-8", url)
     val numbers: Elements = doc.select("tr > td.s-list-numb")
@@ -23,7 +25,7 @@ trait FeedParser {
         if (user == "") {
           List()
         } else {
-          List((user, dateStr))
+          List((user, readDate(dateStr)))
         }
     }
   }
