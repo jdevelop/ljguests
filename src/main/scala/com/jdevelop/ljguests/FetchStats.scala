@@ -1,11 +1,11 @@
 package com.jdevelop.ljguests
 
-import akka.actor.{Props, ActorSystem, Actor}
-import java.util.concurrent.CountDownLatch
+import java.util.concurrent._
 import org.apache.http.client.methods.HttpGet
-import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
-import org.jsoup.select.Elements
+import com.jdevelop.ljguests.DateReaders.RussianDateReader
+import java.io.InputStream
+import concurrent.{Await, ExecutionContext, Future}
+import concurrent.duration.Duration
 
 /**
  * User: Eugene Dzhurinsky
@@ -20,52 +20,41 @@ object FetchStats {
 
 trait FetchStats {
 
-  this: FeedParser with DateReader =>
+  this: FeedParser =>
 
   import FetchStats.PAGES
 
-  private var counter: CountDownLatch = _
+  import concurrent.future
+  import collection.mutable.PriorityQueue
 
-  def actorSystem: ActorSystem
-
-  val fetchActor = actorSystem.actorOf(Props(classOf[FetchActor]))
-
-  val collectActor = actorSystem.actorOf(Props(classOf[FetchActor]))
-
-  private abstract sealed class Message
-
-  private case class Fetch(url: String) extends Message
-
-  private case class Reply(entries: Iterable[Entry])
-
-  private class FetchActor extends Actor {
-
-    override def receive = {
-      case Fetch(url) =>
-        val response = client.execute(new HttpGet(url))
-        parse(response.getEntity.getContent, url)
-    }
-
-  }
-
-  private class CollectActor extends Actor {
-
-    override def receive = {
-      case Reply(entries) =>
-        counter.countDown()
-    }
-
-  }
-
-  def fetch(session: Session) {
-    counter = new CountDownLatch(PAGES)
+  def fetch(session: Session): Iterable[Entry] = {
+    val pool: ExecutorService = Executors.newCachedThreadPool()
+    implicit val ec = ExecutionContext.fromExecutor(pool)
     client.getCookieStore.clear()
     session.cookie.foreach(client.getCookieStore.addCookie(_))
-    new CountDownLatch(PAGES)
-    (1 to PAGES).foreach {
-      case page => fetchActor ! Fetch("http://www.livejournal.com/statistics/guests/?page=" + page)
+    val f = Future.sequence(
+      (1 to PAGES).map(
+        page => future {
+          val parser = new FeedParser with RussianDateReader
+          val url: String = "http://www.livejournal.com/statistics/guests/?page=" + page
+          val response = client.execute(new HttpGet(url))
+          val contentStream: InputStream = response.getEntity.getContent
+          val entries = parser.parse(contentStream, url)
+          contentStream.close()
+          entries
+        }
+      )
+    )
+    val entries = Await.result(f, Duration(30, TimeUnit.SECONDS))
+
+    implicit val order = new Ordering[Entry] {
+      def compare(x: Entry, y: Entry): Int = x.date.compareTo(y.date)
     }
-    counter.await()
+
+    val q = new PriorityQueue()
+    entries.flatten.map(q.+=(_))
+    pool.shutdown()
+    q.toIterable
   }
 
 }

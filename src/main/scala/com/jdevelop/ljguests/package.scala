@@ -1,6 +1,7 @@
 package com.jdevelop
 
 import org.apache.http.impl.client.DefaultHttpClient
+import org.apache.http.impl.conn.PoolingClientConnectionManager
 
 /**
  * User: Eugene Dzhurinsky
@@ -8,6 +9,6 @@ import org.apache.http.impl.client.DefaultHttpClient
  */
 package object ljguests {
 
-  val client = new DefaultHttpClient()
+  val client = new DefaultHttpClient(new PoolingClientConnectionManager())
 
 }
