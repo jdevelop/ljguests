@@ -16,9 +16,9 @@ class FeedParserTest extends FlatSpec with FeedParser with DateReaders.RussianDa
     assert(11 === res.size)
     res.zip(List("fantaseour", "reincarnat", "xeno_by", "theiced", "dmzlj", "dvig_al", "thekonst", "rigidus",
       "izard", "si14", "civil696")).foreach {
-      case ((uname, date), expected) =>
+      case (Entry(uname, date), expected) =>
         assert(expected === uname, "wrong username")
-        assert(date.isDefined, "Date is not parsed")
+        assert(date.getTime != 0, "Date is not parsed")
     }
   }
 

@@ -6,6 +6,7 @@ import org.jsoup.select.Elements
 
 import collection.JavaConversions._
 import org.jsoup.nodes.Element
+import java.util.Date
 
 /**
  * User: Eugene Dzhurinsky
@@ -25,7 +26,7 @@ trait FeedParser {
         if (user == "") {
           List()
         } else {
-          List((user, readDate(dateStr)))
+          List(Entry(user, readDate(dateStr).getOrElse(new Date(0))))
         }
     }
   }
