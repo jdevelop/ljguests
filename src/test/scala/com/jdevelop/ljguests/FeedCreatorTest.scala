@@ -1,10 +1,10 @@
 package com.jdevelop.ljguests
 
 import org.scalatest.FlatSpec
-import xml.Elem
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import java.text.SimpleDateFormat
+import xml.Elem
 
 /**
  * User: Eugene Dzhurinsky
@@ -28,16 +28,11 @@ class FeedCreatorTest extends FlatSpec {
       Entry("self", "27.02.2013 08:11")
     )
 
-    val feed: Map[String, Elem] = new FeedCreator {}.createFeed(samples)
-    assert(3 === feed.size, "Keys are " + feed.keys)
-    for ((date, expected) <- List(
-      "02-03-2013" -> 1,
-      "28-02-2013" -> 1,
-      "27-02-2013" -> 1
-    )) {
-      val z = feed.get(date)
-      assert(z.isDefined, "Key is missing : " + date + " => " + feed.keys)
-      assert(expected === z.get.length, "Wrong number of entries => " + date)
+    val feed: Elem = new FeedCreator {}.createFeed(samples, "29.02.2013 00:00")
+    (feed \\ "item" \ "pubDate").map(_.text.trim).zip(
+      List("Sat, 02 Mar 2013 22:52 -0500", "Sat, 02 Mar 2013 18:10 -0500", "Sat, 02 Mar 2013 08:11 -0500")
+    ).foreach {
+      case (l, r) => assert(l === r)
     }
   }
 
