@@ -1,6 +1,6 @@
 package com.jdevelop.ljguests
 
-import java.util.Date
+import java.util.{TimeZone, Date}
 import java.io.{Writer, FileWriter, File}
 import util.parsing.json.{JSONObject, JSON}
 import java.text.SimpleDateFormat
@@ -11,7 +11,10 @@ import java.text.SimpleDateFormat
  */
 object Main {
 
-  private case class Config(username: String, password: String, lastDate: Option[Date])
+  private case class Config(username: String,
+                            password: String,
+                            lastDate: Option[Date],
+                            tz: String)
 
   private class ClassCaster[T] {
     def unapply(a: Any): Option[T] = Some(a.asInstanceOf[T])
@@ -21,7 +24,11 @@ object Main {
 
   private object ConfigStorage {
 
-    def sdf = new SimpleDateFormat("dd-MM-yyyy")
+    def sdf(tz: String) = {
+      val timezone = new SimpleDateFormat("dd-MM-yyyy")
+      timezone.setTimeZone(TimeZone.getTimeZone(tz))
+      timezone
+    }
 
     val home = new File(sys.env("HOME"))
 
@@ -33,10 +40,12 @@ object Main {
         case objMap: Map[String, Any] =>
           for (
             AsString(uname) <- objMap.get("username");
-            AsString(passwd) <- objMap.get("password")
+            AsString(passwd) <- objMap.get("password");
+            tmz = objMap.getOrElse("timeZone", "EST").asInstanceOf[String]
           ) yield Config(uname,
             passwd,
-            objMap.get("lastDate").map((x: Any) => sdf.parse(x.toString))
+            objMap.get("lastDate").map((x: Any) => sdf(tmz).parse(x.toString)),
+            tmz
           )
         case _ => None
       }
@@ -48,7 +57,7 @@ object Main {
         "password" -> cfg.password
       )
       val content = new JSONObject(
-        cfg.lastDate.map((z: Date) => mainData + ("lastDate" -> sdf.format(z))).getOrElse(mainData)
+        cfg.lastDate.map((z: Date) => mainData + ("lastDate" -> sdf(cfg.tz).format(z))).getOrElse(mainData)
       ).toString()
       var writer: Writer = null
       try {
@@ -69,9 +78,10 @@ object Main {
       cfg <- read();
       session <- god.login(cfg.username, cfg.password);
       entries = god.fetch(session);
-      lastFeedDate <- entries.headOption.map(_.date)
+      lastFeedDate <- entries.headOption.map(_.date);
+      feed <- god.createFeed(entries, cfg.lastDate.getOrElse(new Date(0)), cfg.tz)
     ) {
-      println(god.createFeed(entries, cfg.lastDate.getOrElse(new Date(0))))
+      println(feed)
       write(cfg.copy(lastDate = Some(lastFeedDate)))
     }
   }

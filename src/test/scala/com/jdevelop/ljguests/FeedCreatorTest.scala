@@ -28,8 +28,9 @@ class FeedCreatorTest extends FlatSpec {
       Entry("self", "27.02.2013 08:11")
     )
 
-    val feed: Elem = new FeedCreator {}.createFeed(samples, "29.02.2013 00:00")
-    (feed \\ "item" \ "pubDate").map(_.text.trim).zip(
+    val feed = new FeedCreator {}.createFeed(samples, "29.02.2013 00:00", "EST")
+    assert(feed isDefined)
+    (feed.get \\ "item" \ "pubDate").map(_.text.trim).zip(
       List("Sat, 02 Mar 2013 22:52 -0500", "Sat, 02 Mar 2013 18:10 -0500", "Sat, 02 Mar 2013 08:11 -0500")
     ).foreach {
       case (l, r) => assert(l === r)
