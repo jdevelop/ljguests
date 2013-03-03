@@ -54,7 +54,8 @@ object Main {
     def write(cfg: Config) {
       val mainData: Map[String, Any] = Map(
         "username" -> cfg.username,
-        "password" -> cfg.password
+        "password" -> cfg.password,
+        "timeZone" -> cfg.tz
       )
       val content = new JSONObject(
         cfg.lastDate.map((z: Date) => mainData + ("lastDate" -> sdf(cfg.tz).format(z))).getOrElse(mainData)
