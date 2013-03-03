@@ -8,7 +8,7 @@ Configuration
 Configuration file **must** reside in **user home directory**, for example:
 
 - /home/user/.ljguests
-- c:\User\Username\.ljguests
+- C:\User\Username\ .ljguests
 
 it's content is formatted as JSON:
 
@@ -20,3 +20,11 @@ it's content is formatted as JSON:
     }
 
 **lastDate** and **timezone** are optional elements.
+
+Running
+========
+- Build assembly with `mvn clean assembly:assembly`
+- Create configuration file as above
+- Run as `java -jar ljguests-0.1.jar`
+- RSS feed will be dumped to stdout, feel free to redirect it to a file or RSS reader or whatever.
+- Enjoy
