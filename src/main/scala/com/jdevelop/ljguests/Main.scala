@@ -74,9 +74,12 @@ object Main {
 
   def main(args: Array[String]) {
     import ConfigStorage._
-    val god = new FeedCreator with FetchStats with FeedParser with Login with DateReaders.RussianDateReader
     for (
       cfg <- read();
+      god = new {
+        val tz = TimeZone.getTimeZone(cfg.tz)
+      }
+        with FeedCreator with FetchStats with FeedParser with Login with DateReaders.RussianDateReader;
       session <- god.login(cfg.username, cfg.password);
       entries = god.fetch(session);
       lastFeedDate <- entries.headOption.map(_.date);

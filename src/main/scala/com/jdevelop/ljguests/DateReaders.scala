@@ -1,8 +1,10 @@
 package com.jdevelop.ljguests
 
-import java.util.{Calendar, GregorianCalendar, Locale, Date}
+import java.util._
 import java.text.SimpleDateFormat
 import java.util.regex.{Matcher, Pattern}
+import scala.List
+import scala.Some
 
 /**
  * User: Eugene Dzhurinsky
@@ -16,8 +18,11 @@ object DateReaders {
     "июля", "августа", "сентября", "октября", "ноября", "декабря").zipWithIndex.toMap
 
   trait SimpleDateReader extends DateReader {
-    def readDate(dateStr: String): Option[Date] =
-      Some(new SimpleDateFormat("dd MMMM, HH:mm", new Locale("ru", "RU")).parse(dateStr))
+    def readDate(dateStr: String): Option[Date] = {
+      val sdf: SimpleDateFormat = new SimpleDateFormat("dd MMMM, HH:mm")
+      sdf.setTimeZone(tz)
+      Some(sdf.parse(dateStr))
+    }
   }
 
   trait RussianDateReader extends DateReader {
@@ -30,6 +35,7 @@ object DateReaders {
         c.set(Calendar.YEAR, matcher.group(3).toInt)
         c.set(Calendar.HOUR, matcher.group(4).toInt)
         c.set(Calendar.MINUTE, matcher.group(5).toInt)
+        c.setTimeZone(tz)
         Some(c.getTime)
       } else {
         println(dateStr)

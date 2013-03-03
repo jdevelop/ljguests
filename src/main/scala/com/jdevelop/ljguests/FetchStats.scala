@@ -6,6 +6,7 @@ import com.jdevelop.ljguests.DateReaders.RussianDateReader
 import java.io.InputStream
 import concurrent.{Await, ExecutionContext, Future}
 import concurrent.duration.Duration
+import java.util.TimeZone
 
 /**
  * User: Eugene Dzhurinsky
@@ -22,6 +23,8 @@ trait FetchStats {
 
   this: FeedParser =>
 
+  val tz: TimeZone
+
   import FetchStats.PAGES
 
   import concurrent.future
@@ -35,7 +38,9 @@ trait FetchStats {
     val f = Future.sequence(
       (1 to PAGES).map(
         page => future {
-          val parser = new FeedParser with RussianDateReader
+          val parser = new {
+            val tz = this.tz
+          } with FeedParser with RussianDateReader
           val url: String = "http://www.livejournal.com/statistics/guests/?page=" + page
           val response = client.execute(new HttpGet(url))
           val contentStream: InputStream = response.getEntity.getContent

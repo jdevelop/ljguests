@@ -3,6 +3,7 @@ package com.jdevelop.ljguests
 import org.scalatest.FlatSpec
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+import java.util.TimeZone
 
 /**
  * User: Eugene Dzhurinsky
@@ -10,6 +11,8 @@ import org.scalatest.junit.JUnitRunner
  */
 @RunWith(classOf[JUnitRunner])
 class FeedParserTest extends FlatSpec with FeedParser with DateReaders.RussianDateReader {
+
+  val tz = TimeZone.getTimeZone("EST")
 
   "FeedParser" should "extract all records" in {
     val res = parse(classOf[FeedParserTest].getResourceAsStream("/view.htm"), "http://123.com")
