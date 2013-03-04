@@ -5,6 +5,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import java.text.SimpleDateFormat
 import xml.Elem
+import java.util.TimeZone
 
 /**
  * User: Eugene Dzhurinsky
@@ -15,7 +16,11 @@ class FeedCreatorTest extends FlatSpec {
 
   "FeedCreator" should "generate feed correctly" in {
 
-    val sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm")
+    val sdf = {
+      val z = new SimpleDateFormat("dd.MM.yyyy HH:mm")
+      z.setTimeZone(TimeZone.getTimeZone("EST"))
+      z
+    }
 
     implicit def strToDate(dateStr: String) = sdf.parse(dateStr)
 
