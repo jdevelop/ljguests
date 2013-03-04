@@ -30,12 +30,12 @@ object DateReaders {
       val matcher: Matcher = rusDatePattern.matcher(dateStr)
       if (matcher.find()) {
         val c = new GregorianCalendar
+        c.setTimeZone(tz)
         c.set(Calendar.DATE, matcher.group(1).toInt)
         c.set(Calendar.MONTH, rusMonths.getOrElse(matcher.group(2), 0))
         c.set(Calendar.YEAR, matcher.group(3).toInt)
-        c.set(Calendar.HOUR, matcher.group(4).toInt)
+        c.set(Calendar.HOUR_OF_DAY, matcher.group(4).toInt)
         c.set(Calendar.MINUTE, matcher.group(5).toInt)
-        c.setTimeZone(tz)
         Some(c.getTime)
       } else {
         println(dateStr)
